@@ -2,11 +2,22 @@ new Vue({
     el: '#app',
     data: {
         error: false,
-        users: [],
+        filteredUsers: [],
+        currentLoguedUser: {},
+        USERS_FETCHED_KEY: 'users_fetched_and_filtered',
+        LOGUED_USER_KEY: 'user_logued',
+        FILTERED_USERS_KEY:'users_filtered'
 
     },
     created(){
-       
+      this.users = this.getParsedLocalStorage(this.USERS_FETCHED_KEY) 
+      this.currentLoguedUser = this.getParsedLocalStorage(this.LOGUED_USER_KEY) 
+
+      this.filteredUser()
+
+      console.log(this.users)
+      console.log(this.currentLoguedUser)   
+      console.log(this.filteredUsers);
     },
     methods: {
         setterLocalStorage(key, data){
@@ -15,38 +26,21 @@ new Vue({
         getParsedLocalStorage(key) {
             return JSON.parse(localStorage.getItem(key) || "[]");
         },
-        validateInputs(){
-            error = false;
-          if (typeof this.username !== 'string' || this.username === "" ){
-              this.errors.username = true;
-              error= true
-           }
-           else {
-            this.errors.username = false;
-          }if (this.password === ""){
-            this.errors.password = true;
-            error= true
-         }
-         else {
-          this.errors.password = false;
-        }
-           return error;
-        },
-        validateFormLogin(user,key){
-        this.validateInputs() ? this.error : this.loginUser(user,key)
-        },
-        message(title, timer, position, text, button) {
-        swal({
-          position,
-          text,
-          icon: "success",
-          title,
-          dangerMode: false,
-          timer,
-          button,
-        });
-     },
-     deleteAlert(item) {
+        filteredUser(){
+          this.filteredUsers = [...this.users.filter(user => user.username !== this.currentLoguedUser[0].username && user.password !== this.currentLoguedUser[0].password)]
+          this.setterLocalStorage(this.FILTERED_USERS_KEY,this.filteredUsers)
+        },message(icon,title, timer, position, text, button) {
+          swal({
+            position,
+            text,
+            icon,
+            title,
+            dangerMode: false,
+            timer,
+            button,
+          })
+          },
+        deleteAlert(item) {
         swal({
             title: "¿Está seguro de eliminar?",
             text: "¡Este proceso es irreversible!",
@@ -55,16 +49,19 @@ new Vue({
             dangerMode: true
           }).then((result) => {
             if (result) {
-              this.consolidationLiquidations.splice(this.consolidationLiquidations.indexOf(item), 1)
+              this.filteredUsers.splice(this.filteredUsers.indexOf(item), 1)
               this.message(
+                "success",
                 "Se eliminó correctamente",
                 2000,
                 "center",
-                "¡Los cambios fueron guardados!"
+                "¡Los cambios fueron guardados!",
+                false
               )
-              this.setLocalStorageData(this.STORAGE_KEY, this.consolidationLiquidations)
+                          
             }
+            this.setterLocalStorage(this.FILTERED_USERS_KEY, this.filteredUsers) 
           })
-    }
+        }
     }
 })
